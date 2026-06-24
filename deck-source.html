@@ -954,7 +954,11 @@ class Component extends DCLogic {
       let _n = 0;
       sec.querySelectorAll(SEL).forEach(el => {
         if (el.closest('button')) return;
-        if (el.closest('[data-edit-id]')) return;
+        // Skip elements nested inside an already-editable element — but check ANCESTORS only,
+        // not self: `closest` matches the element itself, so on a re-index pass (restore/undo)
+        // every already-tagged element would be skipped, emptying _editEls. Re-indexing must be
+        // idempotent for in-place restore to re-apply text.
+        if (el.parentElement && el.parentElement.closest('[data-edit-id]')) return;
         if (el.querySelector('button, image-slot, svg')) return;
         const hasText = [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.replace(/\s+/g, '').length);
         if (!hasText) return;
