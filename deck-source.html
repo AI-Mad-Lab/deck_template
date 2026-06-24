@@ -913,6 +913,9 @@ class Component extends DCLogic {
     status('Downloaded \u2713');
     if (dlBtn) dlBtn.disabled = false;
   }
+  _isView() {
+    return /[?&]view=1\b/.test(location.search) || window.__MAD_VIEW === true;
+  }
   initEditor() {
     if (window.__deckEditorReady) return;
     const stage = document.querySelector('deck-stage');
@@ -925,6 +928,8 @@ class Component extends DCLogic {
     this._structSlides = new Set();
     this._indexEditable(secs);
     this._restoreEdits();
+    // Read-only embed (e.g. a public share): show restored content, but no editing chrome.
+    if (this._isView()) return;
     this._hist = [JSON.stringify(this._currentData())];   // baseline for undo
     this._histAt = 0;
     if (!this._undoBound) {
@@ -1115,6 +1120,7 @@ class Component extends DCLogic {
   }
   initApp() {
     if (window.__madAppReady) return;
+    if (this._isView()) { window.__madAppReady = true; return; }  // read-only embed: no toolbar
     const stage = document.querySelector('deck-stage');
     const secs = stage ? stage.querySelectorAll(':scope > section') : [];
     if (!stage || !secs.length) { setTimeout(() => this.initApp(), 150); return; }
